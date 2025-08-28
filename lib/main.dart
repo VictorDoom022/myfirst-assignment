@@ -1,26 +1,21 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-// import 'login_screen.dart';
+import 'login_screen.dart';
 import 'home_screen.dart';
 // import 'edit_screen.dart';
 
-void main() {
-  runApp(const App());
-}
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
 
-class App extends StatelessWidget {
-  const App({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'myFirst',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      // home: const LoginScreen(),
-      home: const HomeScreen(),
-      // home: const EditScreen(),
-    );
-  }
+  runApp(
+    MaterialApp(
+      initialRoute: '/login',
+      routes: {
+        '/': (context) => const HomeScreen(),
+        '/login': (context) => const LoginScreen(),
+      },
+    )
+  );
 }
