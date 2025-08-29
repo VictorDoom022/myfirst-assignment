@@ -117,6 +117,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         horizontal: isExpanded ? 8 : 16
                       ),
                       child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => EditScreen(
+                                note: noteList[index],
+                                mode: EditScreenMode.VIEW,
+                              ),
+                            ),
+                          );
+                        },
                         onLongPress: () {
                           if(focusedNoteID == noteList[index].id) {
                             focusedNoteID = null;
@@ -155,8 +165,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Icons.edit,
                                     color: Theme.of(context).colorScheme.primary,
                                   ),
-                                  onPressed: () {
-
+                                  onPressed: () async {
+                                    await Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => EditScreen(
+                                          note: noteList[index],
+                                          mode: EditScreenMode.EDIT,
+                                        ),
+                                      ),
+                                    );
+                                    await loadNotes();
                                   },
                                 ),
                                 IconButton(
@@ -212,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: () async {
             await Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => const EditScreen(),
+                builder: (context) => const EditScreen(mode: EditScreenMode.ADD),
               )
             );
             await loadNotes();
