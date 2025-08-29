@@ -24,6 +24,7 @@ class EditScreen extends StatefulWidget {
 
 class _EditScreenState extends State<EditScreen> {
 
+  bool isEditMode = false;
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
   TextEditingController titleTextEditingController = TextEditingController();
@@ -37,12 +38,15 @@ class _EditScreenState extends State<EditScreen> {
     super.initState();
     switch(widget.mode) {
       case EditScreenMode.VIEW:
+        isEditMode = false;
         titleTextEditingController.text = widget.note?.title ?? '';
         contentTextEditingController.text = widget.note?.content ?? '';
         break;
       case EditScreenMode.ADD:
+        isEditMode = true;
         break;
       case EditScreenMode.EDIT:
+        isEditMode = true;
         titleTextEditingController.text = widget.note?.title ?? '';
         contentTextEditingController.text = widget.note?.content ?? '';
         break;
@@ -129,12 +133,14 @@ class _EditScreenState extends State<EditScreen> {
                 child: Column(
                   children: [
                     TextField(
+                      enabled: isEditMode,
                       controller: titleTextEditingController,
                       decoration: const InputDecoration(
                         hintText: 'Title',
                       ),
                     ),
                     TextField(
+                      enabled: isEditMode,
                       minLines: 3,
                       maxLines: 10,
                       controller: contentTextEditingController,
