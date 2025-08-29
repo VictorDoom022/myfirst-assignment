@@ -17,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   FirebaseFirestore database = FirebaseFirestore.instance;
   User? loggedInUser = FirebaseAuth.instance.currentUser;
 
+  bool isExpanded = true;
   List<Note> noteList = [];
 
   @override
@@ -82,7 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(4.0),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isExpanded ? 8 : 18,
+                        horizontal: isExpanded ? 8 : 16
+                      ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,12 +97,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontSize: 22
                             ),
                           ),
-                          Text(
+                          isExpanded ? Text(
                             noteList[index].content ?? 'No content',
                             style: const TextStyle(
                               fontSize: 16,
                             ),
-                          ),
+                          ) : const SizedBox.shrink(),
                         ],
                       ),
                     ),
@@ -119,9 +123,13 @@ class _HomeScreenState extends State<HomeScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         TextButton(
-          onPressed: () {},
-          child: const Icon(
-            Icons.unfold_less,
+          onPressed: () {
+            setState(() {
+              isExpanded = !isExpanded;
+            });
+          },
+          child: Icon(
+            isExpanded ? Icons.unfold_less : Icons.menu,
             color: Colors.white,
           ),
           style: ButtonStyle(
