@@ -61,7 +61,7 @@ class _EditScreenState extends State<EditScreen> {
         .collection('userNotes')
         .add(note.toJson());
 
-      Navigator.pop(context);
+      Navigator.pop(context); // Task B9
     } catch(e) {
       print(e);
       if(!kDebugMode) return;
@@ -82,7 +82,7 @@ class _EditScreenState extends State<EditScreen> {
         .doc(note.id)
         .update(note.toJson());
 
-      Navigator.pop(context);
+      Navigator.pop(context); // Task B9
     } catch (e) {
       print(e);
       if(!kDebugMode) return;

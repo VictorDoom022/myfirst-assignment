@@ -13,8 +13,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  TextEditingController emailTextEditingController = TextEditingController(text: 'user1@gmail.com');
-  TextEditingController passwordTextEditingController = TextEditingController(text: 'pwd123');
+  TextEditingController emailTextEditingController = TextEditingController();
+  TextEditingController passwordTextEditingController = TextEditingController();
 
   User? loggedInUser;
 
@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if(kDebugMode) {
         loggedInUser = FirebaseAuth.instance.currentUser;
         if(loggedInUser != null) {
-          Navigator.pushNamed(context, '/');
+          Navigator.popAndPushNamed(context, '/');
         }
       }
     });
@@ -39,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
         password: passwordTextEditingController.text,
       );
 
-      Navigator.pushNamed(context, '/');
+      Navigator.popAndPushNamed(context, '/');
     } catch(e) {
       if(kDebugMode) {
         ScaffoldMessenger.of(context).showSnackBar(
