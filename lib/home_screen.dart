@@ -18,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   User? loggedInUser = FirebaseAuth.instance.currentUser;
 
   bool isExpanded = true;
+  String? focusedNoteID;
   List<Note> noteList = [];
 
   @override
@@ -35,7 +36,12 @@ class _HomeScreenState extends State<HomeScreen> {
       .collection('userNotes')
       .get();
 
-    List<Note> notes = result.docs.map((e) => Note.fromJson(e.data())).toList();
+    List<Note> notes = result.docs.map((e) {
+      Note note = Note.fromJson(e.data());
+      note.id = e.id;
+      return note;
+    }).toList();
+
     setState(() {
       noteList = notes;
     });
@@ -87,23 +93,62 @@ class _HomeScreenState extends State<HomeScreen> {
                         vertical: isExpanded ? 8 : 18,
                         horizontal: isExpanded ? 8 : 16
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            noteList[index].title ?? 'No title',
-                            style: const TextStyle(
-                              fontSize: 22
+                      child: InkWell(
+                        onLongPress: () {
+                          if(focusedNoteID == noteList[index].id) {
+                            focusedNoteID = null;
+                          } else {
+                            focusedNoteID = noteList[index].id;
+                          }
+                          setState(() { });
+                        },
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    noteList[index].title ?? 'No title',
+                                    style: const TextStyle(
+                                      fontSize: 22
+                                    ),
+                                  ),
+                                  isExpanded ? Text(
+                                    noteList[index].content ?? 'No content',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                    ),
+                                  ) : const SizedBox.shrink(),
+                                ],
+                              ),
                             ),
-                          ),
-                          isExpanded ? Text(
-                            noteList[index].content ?? 'No content',
-                            style: const TextStyle(
-                              fontSize: 16,
-                            ),
-                          ) : const SizedBox.shrink(),
-                        ],
+                            focusedNoteID == noteList[index].id ? Row(
+                              children: [
+                                const SizedBox(width: 10),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.edit,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  onPressed: () {
+
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.delete,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  onPressed: () {
+
+                                  },
+                                )
+                              ],
+                            ) : const SizedBox.shrink(),
+                          ],
+                        ),
                       ),
                     ),
                    isLastItem ? const SizedBox.shrink() : const Divider(color: Colors.grey,),
