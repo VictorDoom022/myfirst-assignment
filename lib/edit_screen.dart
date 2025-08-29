@@ -94,7 +94,7 @@ class _EditScreenState extends State<EditScreen> {
       appBar: AppBar(
         centerTitle: true,
         automaticallyImplyLeading: false,
-        title: Text('${capitalizeFirst(widget.mode.name)} Note'),
+        title: Text(renderAppBarTitle()),
         actions: [
           widget.mode != EditScreenMode.VIEW ? IconButton(
             icon: const Icon(Icons.check_circle),
@@ -153,9 +153,15 @@ class _EditScreenState extends State<EditScreen> {
     );
   }
 
-  String? capitalizeFirst(String s) {
-    if (s.trim().isEmpty) return s;
-    return s[0].toUpperCase() + s.substring(1).toLowerCase();
+  String renderAppBarTitle() {
+    switch(widget.mode) {
+      case EditScreenMode.VIEW:
+        return 'View Note';
+      case EditScreenMode.ADD:
+        return 'Add new Note';
+      case EditScreenMode.EDIT:
+        return 'Edit Note';
+    }
   }
 }
 
