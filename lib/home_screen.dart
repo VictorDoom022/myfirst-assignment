@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:map_exam/note.dart';
 
@@ -45,7 +46,29 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       noteList = notes;
     });
+  }
 
+  Future<void> deleteNote(String id) async {
+    if(loggedInUser == null) return;
+    try {
+      await database.collection('notes')
+        .doc(loggedInUser!.uid)
+        .collection('userNotes')
+        .doc(id)
+        .delete();
+      await loadNotes();
+
+      if(!kDebugMode) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Note deleted')),
+      );
+    } catch(e) {
+      print(e);
+      if(!kDebugMode) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
   }
 
   @override
@@ -141,8 +164,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Icons.delete,
                                     color: Theme.of(context).colorScheme.primary,
                                   ),
-                                  onPressed: () {
-
+                                  onPressed: () async {
+                                    if(noteList[index].id == null) return;
+                                    await deleteNote(noteList[index].id!);
                                   },
                                 )
                               ],
