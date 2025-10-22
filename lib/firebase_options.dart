@@ -83,4 +83,5 @@ class DefaultFirebaseOptions {
     authDomain: 'myfirst-assignment.firebaseapp.com',
     storageBucket: 'myfirst-assignment.firebasestorage.app',
   );
+
 }
