@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:note_bloc/repository/note_repository.dart';
 
 import 'models/note.dart';
 
@@ -31,7 +32,6 @@ class _EditScreenState extends State<EditScreen> {
   TextEditingController titleTextEditingController = TextEditingController();
   TextEditingController contentTextEditingController = TextEditingController();
 
-  FirebaseFirestore database = FirebaseFirestore.instance;
   User? loggedInUser = FirebaseAuth.instance.currentUser;
 
   @override
@@ -57,10 +57,7 @@ class _EditScreenState extends State<EditScreen> {
   Future<void> saveNote(Note note) async {
     if(loggedInUser == null) return;
     try {
-      DocumentReference<Map<String, dynamic>> result = await database.collection('notes')
-          .doc(loggedInUser!.uid)
-          .collection('userNotes')
-          .add(note.toJson());
+      await NoteRepository().addNote(note);
 
       Navigator.pop(context); // Task B9
     } catch(e) {
@@ -76,12 +73,7 @@ class _EditScreenState extends State<EditScreen> {
     if (loggedInUser == null || note.id == null) return;
 
     try {
-      await database
-          .collection('notes')
-          .doc(loggedInUser!.uid)
-          .collection('userNotes')
-          .doc(note.id)
-          .update(note.toJson());
+      await NoteRepository().updateNote(note);
 
       Navigator.pop(context); // Task B9
     } catch (e) {

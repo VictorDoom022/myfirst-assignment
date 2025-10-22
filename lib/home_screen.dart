@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:note_bloc/repository/note_repository.dart';
 
 import 'edit_screen.dart';
 import 'models/note.dart';
@@ -15,7 +16,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
 
-  FirebaseFirestore database = FirebaseFirestore.instance;
   User? loggedInUser = FirebaseAuth.instance.currentUser;
 
   bool isExpanded = true;
@@ -32,16 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> loadNotes() async {
     if(loggedInUser == null) return;
-    QuerySnapshot<Map<String, dynamic>> result = await database.collection('notes')
-        .doc(loggedInUser!.uid)
-        .collection('userNotes')
-        .get();
-
-    List<Note> notes = result.docs.map((e) {
-      Note note = Note.fromJson(e.data());
-      note.id = e.id;
-      return note;
-    }).toList();
+    List<Note> notes = await NoteRepository().getAllNotes();
 
     setState(() {
       noteList = notes;
@@ -51,11 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> deleteNote(String id) async {
     if(loggedInUser == null) return;
     try {
-      await database.collection('notes')
-          .doc(loggedInUser!.uid)
-          .collection('userNotes')
-          .doc(id)
-          .delete();
+      await NoteRepository().deleteNote(id);
       await loadNotes();
 
       if(!kDebugMode) return;
