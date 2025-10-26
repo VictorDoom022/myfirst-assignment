@@ -2,8 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:note_bloc/bloc/note_event.dart';
 import 'package:note_bloc/repository/note_repository.dart';
 
+import 'bloc/note_bloc.dart';
 import 'models/note.dart';
 
 
@@ -57,7 +60,9 @@ class _EditScreenState extends State<EditScreen> {
   Future<void> saveNote(Note note) async {
     if(loggedInUser == null) return;
     try {
-      await NoteRepository().addNote(note);
+      context.read<NoteBloc>().add(
+        NoteAdded(note: note)
+      );
 
       Navigator.pop(context); // Task B9
     } catch(e) {
@@ -73,7 +78,9 @@ class _EditScreenState extends State<EditScreen> {
     if (loggedInUser == null || note.id == null) return;
 
     try {
-      await NoteRepository().updateNote(note);
+      context.read<NoteBloc>().add(
+        NoteUpdated(note: note)
+      );
 
       Navigator.pop(context); // Task B9
     } catch (e) {

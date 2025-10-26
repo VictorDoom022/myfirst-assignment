@@ -2,6 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:note_bloc/bloc/note_bloc.dart';
+import 'package:note_bloc/bloc/note_event.dart';
+import 'package:note_bloc/bloc/note_state.dart';
 import 'package:note_bloc/repository/note_repository.dart';
 
 import 'edit_screen.dart';
@@ -20,42 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool isExpanded = true;
   String? focusedNoteID;
-  List<Note> noteList = [];
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      loadNotes();
-    });
-  }
-
-  Future<void> loadNotes() async {
-    if(loggedInUser == null) return;
-    List<Note> notes = await NoteRepository().getAllNotes();
-
-    setState(() {
-      noteList = notes;
-    });
-  }
-
-  Future<void> deleteNote(String id) async {
-    if(loggedInUser == null) return;
-    try {
-      await NoteRepository().deleteNote(id);
-      await loadNotes();
-
-      if(!kDebugMode) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Note deleted')),
-      );
-    } catch(e) {
-      print(e);
-      if(!kDebugMode) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    }
   }
 
   @override
@@ -73,13 +45,17 @@ class _HomeScreenState extends State<HomeScreen> {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Text(
-                noteList.length.toString(),
-                style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold
-                ),
+              child: BlocBuilder<NoteBloc, NoteState>(
+                builder: (context, state) {
+                  return Text(
+                    state.props.length.toString(),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold
+                    ),
+                  );
+                }
               ),
             ),
           )
@@ -88,103 +64,140 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            ListView.builder(
-              shrinkWrap: true,
-              itemCount: noteList.length,
-              itemBuilder: (context, index) {
-                bool isLastItem = index == noteList.length - 1;
+            BlocConsumer<NoteBloc, NoteState>(
+              listener: (context, state) {
+                if(state is NoteError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("An Error Occured")),
+                  );
+                }
+              },
+              builder: (context, state) {
+                if(state is NoteInitial) {
+                  return const Center(
+                    child: Text('Initializing...'),
+                  );
+                }
 
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                          vertical: isExpanded ? 8 : 18,
-                          horizontal: isExpanded ? 8 : 16
-                      ),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => EditScreen(
-                                note: noteList[index],
-                                mode: EditScreenMode.VIEW,
-                              ),
+                if(state is NoteLoading) {
+                  return const Center(
+                    child: Text('Loading...'),
+                  );
+                }
+
+                if(state is NoteError) {
+                  return Center(
+                    child: Text('Failed to fetch notes: ${state.message}'),
+                  );
+                }
+
+                if(state is NoteSuccess) {
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: state.notes.length,
+                    itemBuilder: (context, index) {
+                      bool isLastItem = index == state.notes.length - 1;
+                      Note note = state.notes[index];
+
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: isExpanded ? 8 : 18,
+                              horizontal: isExpanded ? 8 : 16
                             ),
-                          );
-                        },
-                        onLongPress: () {
-                          if(focusedNoteID == noteList[index].id) {
-                            focusedNoteID = null;
-                          } else {
-                            focusedNoteID = noteList[index].id;
-                          }
-                          setState(() { });
-                        },
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    noteList[index].title ?? 'No title',
-                                    style: const TextStyle(
-                                        fontSize: 22
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => EditScreen(
+                                      note: note,
+                                      mode: EditScreenMode.VIEW,
                                     ),
                                   ),
-                                  isExpanded ? Text(
-                                    noteList[index].content ?? 'No content',
-                                    style: const TextStyle(
-                                      fontSize: 16,
+                                );
+                              },
+                              onLongPress: () {
+                                if(focusedNoteID == note.id) {
+                                  focusedNoteID = null;
+                                } else {
+                                  focusedNoteID = note.id;
+                                }
+                                setState(() { });
+                              },
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          note.title ?? 'No title',
+                                          style: const TextStyle(
+                                              fontSize: 22
+                                          ),
+                                        ),
+                                        isExpanded ? Text(
+                                          note.content ?? 'No content',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                          ),
+                                        ) : const SizedBox.shrink(),
+                                      ],
                                     ),
+                                  ),
+                                  focusedNoteID == note.id ? Row(
+                                    children: [
+                                      const SizedBox(width: 10),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.edit,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                        onPressed: () async {
+                                          await Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => EditScreen(
+                                                note: note,
+                                                mode: EditScreenMode.EDIT,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.delete,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                        onPressed: () async {
+                                          if(note.id == null) return;
+                                          context.read<NoteBloc>().add(
+                                            NoteDeleted(note.id!)
+                                          );
+                                        },
+                                      )
+                                    ],
                                   ) : const SizedBox.shrink(),
                                 ],
                               ),
                             ),
-                            focusedNoteID == noteList[index].id ? Row(
-                              children: [
-                                const SizedBox(width: 10),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.edit,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                  onPressed: () async {
-                                    await Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => EditScreen(
-                                          note: noteList[index],
-                                          mode: EditScreenMode.EDIT,
-                                        ),
-                                      ),
-                                    );
-                                    await loadNotes();
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.delete,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                  onPressed: () async {
-                                    if(noteList[index].id == null) return;
-                                    await deleteNote(noteList[index].id!);
-                                  },
-                                )
-                              ],
-                            ) : const SizedBox.shrink(),
-                          ],
-                        ),
-                      ),
-                    ),
-                    isLastItem ? const SizedBox.shrink() : const Divider(color: Colors.grey,),
-                  ],
+                          ),
+                          isLastItem ? const SizedBox.shrink() : const Divider(color: Colors.grey,),
+                        ],
+                      );
+                    },
+                  );
+                }
+
+                return const Center(
+                  child: Text('Unknown State'),
                 );
               },
-            )
+            ),
           ],
         ),
       ),
@@ -220,7 +233,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (context) => const EditScreen(mode: EditScreenMode.ADD),
                 )
             );
-            await loadNotes();
           },
           child: const Icon(
             Icons.add,
