@@ -15,11 +15,13 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
    on<NoteDeleted>(_onDeleteNote);
   }
 
-  Future<void> _fetchAndEmit(Emitter<NoteState> emit) async {
+  Future<void> _fetchAndEmit(Emitter<NoteState> emit, {String? message}) async {
     emit(NoteLoading());
     try {
       List<Note> notes = await noteRepository.getAllNotes();
-      emit(NoteSuccess(notes));
+      emit(
+        NoteSuccess(notes, message: message)
+      );
     } catch(e) {
       emit(NoteError(e.toString()));
     }
@@ -32,7 +34,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
   Future<void> _onAddNote(NoteAdded event, Emitter<NoteState> emit) async {
     try {
       await noteRepository.addNote(event.note);
-      await _fetchAndEmit(emit);
+      await _fetchAndEmit(emit, message: 'Note Added Successfully');
     } catch(e) {
       emit(NoteError(e.toString()));
     }
@@ -41,7 +43,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
   Future<void> _onUpdateNote(NoteUpdated event, Emitter<NoteState> emit) async {
     try {
       await noteRepository.updateNote(event.note);
-      await _fetchAndEmit(emit);
+      await _fetchAndEmit(emit, message: 'Note Updated Successfully');
     } catch(e) {
       emit(NoteError(e.toString()));
     }
@@ -50,7 +52,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
   Future<void> _onDeleteNote(NoteDeleted event, Emitter<NoteState> emit) async {
     try {
       await noteRepository.deleteNote(event.id);
-      await _fetchAndEmit(emit);
+      await _fetchAndEmit(emit, message: 'Note Deleted Successfully');
     } catch(e) {
       emit(NoteError(e.toString()));
     }

@@ -72,7 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
               listener: (context, state) {
                 if(state is NoteError) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("An Error Occured")),
+                    SnackBar(content: Text('An Error Occurred')),
+                  );
+                }
+
+                if(state is NoteSuccess && state.message != null) {
+                  ScaffoldMessenger.of(context)..clearSnackBars()..showSnackBar(
+                    SnackBar(content: Text(state.message ?? 'Unknown Message')),
                   );
                 }
               },

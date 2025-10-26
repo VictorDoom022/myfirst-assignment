@@ -4,7 +4,7 @@ abstract class NoteState {
   const NoteState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 // Initial: The starting state.
@@ -15,10 +15,12 @@ class NoteLoading extends NoteState {}
 
 class NoteSuccess extends NoteState {
   final List<Note> notes;
-  const NoteSuccess(this.notes);
+  final String? message;
+
+  const NoteSuccess(this.notes, { this.message });
 
   @override
-  List<Object> get props => [notes];
+  List<Object?> get props => [notes, message];
 }
 
 class NoteError extends NoteState {
@@ -26,5 +28,5 @@ class NoteError extends NoteState {
   const NoteError(this.message);
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }
