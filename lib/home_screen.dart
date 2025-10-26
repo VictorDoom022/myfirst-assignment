@@ -47,11 +47,15 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Center(
               child: BlocBuilder<NoteBloc, NoteState>(
                 builder: (context, state) {
+                  String displayLabel = '';
+                  if(state is NoteSuccess) {
+                    displayLabel = state.notes.length.toString();
+                  }
                   return Text(
-                    state.props.length.toString(),
+                    displayLabel,
                     style: const TextStyle(
                       fontSize: 18,
-                      color: Colors.white,
+                      color: Colors.black,
                       fontWeight: FontWeight.bold
                     ),
                   );
